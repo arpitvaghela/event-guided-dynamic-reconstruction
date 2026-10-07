@@ -126,16 +126,15 @@ strong { font-weight: 600; }
 .hero__venue {
   font-family: var(--sans);
   font-size: 13.5px; color: var(--ink-2);
-  margin: 0 0 clamp(16px, 2.6vw, 24px);
+  margin: 0 0 clamp(22px, 3.2vw, 30px);
 }
-.hero__venue b { color: var(--ink); font-weight: 600; }
 
 .hero__title {
   font-weight: 400;
   font-size: clamp(32px, 5.4vw, 57px);
   line-height: 1.1;
   letter-spacing: -.023em;
-  margin: 0 0 clamp(18px, 2.6vw, 26px);
+  margin: 0 0 clamp(10px, 1.4vw, 14px);
   max-width: 20ch;
   text-wrap: balance;
 }
