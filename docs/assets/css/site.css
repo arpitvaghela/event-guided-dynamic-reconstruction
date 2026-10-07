@@ -5,16 +5,20 @@
    =========================================================== */
 
 :root {
-  --paper:   #FDFCF5;
-  --paper-2: #F6F2E4;
+  --paper:   #FFFAFA;
+  --paper-2: #F9F0F0;
   --plate:   #FFFFFF;
   --ink:     #1C1B16;
   --ink-2:   #56544A;
   --ink-3:   #8C8A7E;
   --rule:      rgba(28, 27, 22, .16);
   --rule-soft: rgba(28, 27, 22, .085);
-  --on:      #C62B38;
-  --off:     #1A5FC4;
+  /* Periwinkle, two steps of one hue. The tint is the brand colour and carries
+     dark text; at 1.5:1 on paper it cannot be text itself, so the deeper step
+     handles links, labels and borders. Event polarity red/blue is not a UI
+     colour -- it appears only in the mark and the hero gradient. */
+  --accent:      #4D4DD5;
+  --accent-tint: #CCCCFF;
 
   /* Literata is a screen-reading serif: low contrast, sturdy, open. */
   --serif: "Literata", Georgia, "Times New Roman", serif;
@@ -60,19 +64,19 @@ p:last-child { margin-bottom: 0; }
 
 a {
   color: var(--ink);
-  text-decoration-color: rgba(26, 95, 196, .45);
+  text-decoration-color: rgba(77, 77, 213, .5);
   text-underline-offset: .2em;
   text-decoration-thickness: 1px;
   transition: color .16s ease, text-decoration-color .16s ease;
 }
-a:hover { color: var(--off); text-decoration-color: var(--off); }
+a:hover { color: var(--accent); text-decoration-color: var(--accent); }
 
-:focus-visible { outline: 2px solid var(--off); outline-offset: 3px; border-radius: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
 strong { font-weight: 600; }
 
 .scene-name { font-style: italic; }
 
-.skip { position: absolute; left: -9999px; top: 0; background: var(--off); color: #fff; padding: 10px 18px; z-index: 200; }
+.skip { position: absolute; left: -9999px; top: 0; background: var(--accent); color: #fff; padding: 10px 18px; z-index: 200; }
 .skip:focus { left: 12px; top: 12px; }
 
 /* --- nav --------------------------------------------------- */
@@ -81,7 +85,7 @@ strong { font-weight: 600; }
   position: sticky; top: 0; z-index: 100;
   display: flex; align-items: center; gap: 16px;
   padding: 10px var(--gutter);
-  background: rgba(253, 252, 245, .88);
+  background: rgba(255, 250, 250, .88);
   backdrop-filter: blur(12px) saturate(140%);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
   border-bottom: 1px solid var(--rule-soft);
@@ -107,11 +111,11 @@ strong { font-weight: 600; }
   background: transparent; cursor: pointer; white-space: nowrap;
   transition: border-color .16s ease, background .16s ease, color .16s ease;
 }
-.pill:hover { border-color: var(--off); background: rgba(26, 95, 196, .07); color: var(--off); }
+.pill:hover { border-color: var(--accent); background: rgba(77, 77, 213, .08); color: var(--accent); }
 .pill--muted { color: var(--ink-3); border-style: dashed; }
 .pill--muted:hover { color: var(--ink-2); background: transparent; border-color: var(--rule); }
-.pill--primary { background: var(--off); border-color: var(--off); color: #fff; font-weight: 600; }
-.pill--primary:hover { background: #164FA4; border-color: #164FA4; color: #fff; }
+.pill--primary { background: var(--accent-tint); border-color: var(--accent-tint); color: var(--ink); font-weight: 600; }
+.pill--primary:hover { background: #AAAAFA; border-color: #AAAAFA; color: var(--ink); }
 
 @media (max-width: 680px) { .nav__mark span { display: none; } }
 
@@ -136,6 +140,22 @@ strong { font-weight: 600; }
   text-wrap: balance;
 }
 .hero__title .l2 { display: block; font-style: italic; color: #3B3930; }
+
+/* Polarity gradient across the italic line: ON red through to OFF blue, held
+   back so it sits under the roman line rather than competing with it. The stops
+   are #C62B38 / #8B3A86 / #1A5FC4 pre-blended 80% onto --paper, rather than an
+   opacity -- the load animation ends on opacity:1 and would cancel that. Re-blend
+   them if --paper changes. Guarded, because without background-clip the text
+   would paint transparent. */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .hero__title .l2 {
+    background: linear-gradient(104deg, #D1545F 4%, #A2609D 46%, #487ECF 92%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+}
 
 /* One orchestrated moment: the title resolves out of blur, which is
    what the method itself does. */
@@ -166,7 +186,9 @@ strong { font-weight: 600; }
   max-width: 76ch; margin: 0 0 8px;
   font-size: 15px; line-height: 1.7;
 }
-.authors sup, .affils sup { color: var(--off); font-size: .72em; }
+.authors sup, .affils sup { color: var(--accent); font-size: .72em; }
+/* First author carries their own link, set bold by the usual convention. */
+.authors a { font-weight: 600; text-decoration-thickness: 1px; text-underline-offset: .18em; }
 
 .affils {
   font-family: var(--sans);
@@ -203,7 +225,7 @@ figcaption b { color: var(--ink); font-weight: 600; }
 
 .section__eyebrow {
   font-family: var(--sans);
-  font-size: 13px; font-weight: 600; color: var(--off);
+  font-size: 13px; font-weight: 600; color: var(--accent);
   margin: 0 0 10px;
 }
 .section__title {
@@ -243,7 +265,7 @@ figcaption b { color: var(--ink); font-weight: 600; }
 .delta__from { color: var(--ink-3); }
 .delta__arrow { width: 13px; height: 1px; background: var(--ink-3); align-self: center; flex: none; }
 .delta__to { font-weight: 600; }
-.delta__gain { font-family: var(--sans); margin: 6px 0 0; font-size: 13.5px; font-weight: 600; color: var(--off); }
+.delta__gain { font-family: var(--sans); margin: 6px 0 0; font-size: 13.5px; font-weight: 600; color: var(--accent); }
 .delta__base { font-family: var(--sans); margin: 2px 0 0; font-size: 12.5px; color: var(--ink-3); }
 
 .tabs { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
@@ -255,7 +277,7 @@ figcaption b { color: var(--ink); font-weight: 600; }
   transition: border-color .16s ease, color .16s ease, background .16s ease;
 }
 .tab:hover { color: var(--ink); border-color: var(--ink-3); }
-.tab[aria-selected="true"] { color: var(--off); border-color: var(--off); background: rgba(26, 95, 196, .07); }
+.tab[aria-selected="true"] { color: var(--accent); border-color: var(--accent); background: rgba(204, 204, 255, .40); }
 
 .videoframe {
   border: 1px solid var(--rule-soft);
@@ -312,10 +334,10 @@ td.r1 { background: rgba(28, 27, 22, .115); font-weight: 700; }
 td.r2 { background: rgba(28, 27, 22, .058); }
 td.r3 { background: rgba(28, 27, 22, .026); }
 
-tr.ours td, tr.ours .m { background-color: rgba(26, 95, 196, .065); }
-tr.ours td.r1 { background: rgba(26, 95, 196, .2); }
-tr.ours td.r2 { background: rgba(26, 95, 196, .12); }
-tr.ours .m { font-weight: 700; box-shadow: inset 2px 0 0 var(--off); }
+tr.ours td, tr.ours .m { background-color: rgba(204, 204, 255, .42); }
+tr.ours td.r1 { background: rgba(204, 204, 255, 1); }
+tr.ours td.r2 { background: rgba(204, 204, 255, .72); }
+tr.ours .m { font-weight: 700; box-shadow: inset 2px 0 0 var(--accent); }
 
 .legend {
   font-family: var(--sans);
