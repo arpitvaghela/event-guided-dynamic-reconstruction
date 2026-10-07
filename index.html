@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Event-Guided Dynamic Reconstruction under Extreme Motion Blur</title>
+<meta name="description" content="Event cameras guide camera-trajectory estimation and deblurring for dynamic 3D scene reconstruction when motion blur breaks Structure-from-Motion. The camera path is one continuous cubic SE(3) B-spline, jointly optimized with dynamic 3D Gaussians.">
+<meta name="author" content="Arpitsinh Vaghela, Aayush Atul Verma, Kaustav Chanda, Chi-Yao Huang, Duo Lu, Bharatesh Chakravarthi, Yezhou Yang">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Event-Guided Dynamic Reconstruction under Extreme Motion Blur">
+<meta property="og:description" content="Using the microsecond timing of an event camera to recover camera trajectories and sharp dynamic scenes from extremely blurred monocular video.">
+<meta property="og:image" content="assets/figures/teaser.webp">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..700&display=swap">
+<link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <a class="nav__mark" href="#top">
+    <svg class="nav__dots" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="12" cy="13" r="5.5" fill="#C62B38"/>
+      <circle cx="20" cy="19" r="5.5" fill="#1A5FC4"/>
+    </svg>
+    <span>Event-Guided Dynamic Reconstruction</span>
+  </a>
+  <div class="nav__links">
+    <a class="pill" href="assets/pdf/event-guided-dynamic-reconstruction.pdf">PDF</a>
+    <!-- TODO: replace href with the arXiv URL once the preprint is live. -->
+    <a class="pill pill--muted" href="#" data-arxiv>arXiv</a>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ====================== 1 · HERO ====================== -->
+<header class="hero" id="top">
+  <div class="wrap">
+    <p class="hero__venue"><b>1st Workshop on Physical World AI</b>, NeurIPS 2026</p>
+
+    <h1 class="hero__title">
+      <span class="l1">Event-Guided Dynamic Reconstruction</span>
+      <span class="l2">under Extreme Motion Blur</span>
+    </h1>
+
+    <p class="hero__lead">
+      Motion blur destroys the feature correspondences that reconstruction depends on, and
+      Structure-from-Motion collapses with it. We use the microsecond timing of an event camera to
+      recover them, and model the camera path as one continuous spline rather than a separate pose
+      per frame.
+    </p>
+
+    <p class="authors">
+      Arpitsinh Vaghela<sup>1</sup>, Aayush Atul Verma<sup>1</sup>, Kaustav Chanda<sup>1</sup>,
+      Chi-Yao Huang<sup>1</sup>, Duo Lu<sup>2</sup>, Bharatesh Chakravarthi<sup>1</sup>,
+      Yezhou Yang<sup>1</sup>
+    </p>
+    <p class="affils">
+      <sup>1</sup>Arizona State University &nbsp; <sup>2</sup>Rider University
+    </p>
+
+    <div class="actions">
+      <a class="pill pill--primary" href="assets/pdf/event-guided-dynamic-reconstruction.pdf">Read the paper</a>
+      <a class="pill pill--muted" href="#" data-arxiv>arXiv</a>
+    </div>
+
+    <figure class="plate">
+      <img src="assets/figures/teaser.webp" width="2200" height="780"
+           alt="Seven-column comparison on two scenes. From a blurred input, 4DGaussians, BAD-4DGaussians and EDyGS leave smeared or broken detail; our reconstruction recovers the face, chair legs and cat fur close to the sharp reference.">
+    </figure>
+    <p class="caption">
+      Novel views under extreme blur. <b>Ours</b> stays sharp where the baselines smear or tear.
+    </p>
+  </div>
+</header>
+
+<!-- ====================== 2 · METHOD ====================== -->
+<section class="section" id="method">
+  <div class="wrap">
+    <p class="section__eyebrow">Method</p>
+    <h2 class="section__title">Events restore the edges, a spline restores the motion</h2>
+
+    <div class="method__grid">
+      <div class="prose">
+        <p>
+          COLMAP finds keypoints as regions of strong intensity change, and extreme blur averages
+          those edges away. On our benchmark it recovers <strong>no camera poses at all</strong> at
+          severe or extreme blur, leaving every blur-aware method without the initialization it
+          assumes. The Event-based Double Integral turns asynchronous events plus a blurred frame
+          back into sharp intensity images, which replace the raw frames during SfM. Features
+          reappear, and poses become estimable at a higher frequency than the blurred frames
+          themselves.
+        </p>
+        <p>
+          The trajectory is then a single cubic B-spline in <strong>SE(3)</strong>, not a pose per
+          frame. Each control point supports a window of time and adjacent poses share them, so
+          temporal coherence is a property of the representation rather than a penalty bolted onto
+          the loss. That is where the accuracy comes from: pose error drops 35%.
+        </p>
+      </div>
+
+      <figure>
+        <div class="plate">
+          <img src="assets/figures/pose-viz.webp" width="1000" height="794" loading="lazy"
+               alt="Two 3D plots of the first thirty camera poses. The BAD Gaussians module groups poses into three tight clusters joined by long straight jumps, drifting from the dashed ground-truth curve. Our module places poses evenly along a smooth arc that tracks the ground truth.">
+        </div>
+        <figcaption>
+          First 30 poses on <b>sriracha-tree</b>. Per-frame refinement (top) clumps and jumps; our
+          continuous spline (bottom) tracks the ground truth.
+        </figcaption>
+      </figure>
+    </div>
+
+    <figure class="pipeline">
+      <div class="plate">
+        <img src="assets/figures/pipeline.webp" width="2400" height="1777" loading="lazy"
+             alt="Three-stage framework diagram. Stage 1 fits a B-spline camera trajectory from control points. Stage 2 samples poses along the spline, renders and averages them into a synthetic blurred image, and applies blur and intensity losses through a dynamic mask. Stage 3 adds a deformation field conditioned on time to reconstruct the moving regions.">
+      </div>
+      <figcaption>
+        <b>Stage 1</b> fits the spline to the event-guided pose estimates. <b>Stage 2</b> refines it
+        against both blurred frames and event-recovered intensities, with a dynamic mask keeping
+        object motion out of the trajectory. <b>Stage 3</b> freezes the trajectory and learns a
+        deformation field for the moving regions.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ====================== 3 · RESULTS ====================== -->
+<section class="section" id="results">
+  <div class="wrap">
+    <p class="section__eyebrow">Results</p>
+    <h2 class="section__title">Eight scenes, seven methods, extreme blur throughout</h2>
+
+    <div class="deltas">
+      <div class="delta">
+        <p class="delta__label">Deblurring PSNR</p>
+        <p class="delta__row"><span class="delta__from">21.31</span><span class="delta__arrow"></span><span class="delta__to">21.83 dB</span></p>
+        <p class="delta__gain">+0.52 dB</p>
+        <p class="delta__base">best baseline: EDyGS</p>
+      </div>
+      <div class="delta">
+        <p class="delta__label">Novel view synthesis, SI-PSNR</p>
+        <p class="delta__row"><span class="delta__from">19.40</span><span class="delta__arrow"></span><span class="delta__to">20.42 dB</span></p>
+        <p class="delta__gain">+1.02 dB</p>
+        <p class="delta__base">best baseline: BAD-4DGau. (w/ EV)</p>
+      </div>
+      <div class="delta">
+        <p class="delta__label">Absolute pose error</p>
+        <p class="delta__row"><span class="delta__from">1.83</span><span class="delta__arrow"></span><span class="delta__to">1.19 cm</span></p>
+        <p class="delta__gain">35% lower</p>
+        <p class="delta__base">best baseline: EDyGS</p>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Scene groups">
+      <button class="tab" role="tab" aria-selected="true" id="tab-c1" aria-controls="cmp-video"
+              data-src="assets/video/comparison-01.mp4" data-poster="assets/video/comparison-01.jpg" data-ar="1280 / 720">
+        sriracha-tree, paper-windmill, backpack
+      </button>
+      <button class="tab" role="tab" aria-selected="false" id="tab-c2" aria-controls="cmp-video"
+              data-src="assets/video/comparison-02.mp4" data-poster="assets/video/comparison-02.jpg" data-ar="1280 / 720">
+        space-out, handwavy, pillow
+      </button>
+      <button class="tab" role="tab" aria-selected="false" id="tab-c3" aria-controls="cmp-video"
+              data-src="assets/video/comparison-03.mp4" data-poster="assets/video/comparison-03.jpg" data-ar="1280 / 556">
+        spin, teddy
+      </button>
+    </div>
+
+    <div class="videoframe">
+      <video id="cmp-video" muted loop playsinline preload="none"
+             poster="assets/video/comparison-01.jpg"
+             data-src="assets/video/comparison-01.mp4"
+             aria-label="Side-by-side video comparison of reconstruction methods under extreme motion blur"></video>
+    </div>
+    <p class="caption">
+      Left to right: blurred input, 4DGaussians, 4DGaussians + MPRNet, BAD-4DGaussians, EDyGS, ours,
+      sharp reference. All methods use the camera poses from our event-guided pipeline, because none
+      of them can be run without them.
+    </p>
+
+    <div class="tablewrap">
+      <table class="data">
+        <thead>
+          <tr>
+            <th class="m" rowspan="2" scope="col">Method</th>
+            <th class="grp" colspan="3" scope="colgroup">Deblurring</th>
+            <th class="grp" colspan="3" scope="colgroup">Novel view synthesis</th>
+          </tr>
+          <tr>
+            <th scope="col">PSNR &uarr;</th><th scope="col">SSIM &uarr;</th><th scope="col">LPIPS &darr;</th>
+            <th scope="col">SI-PSNR &uarr;</th><th scope="col">SI-SSIM &uarr;</th><th scope="col">SI-LPIPS &darr;</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th class="m" scope="row">ED3DGS</th><td>19.59</td><td>0.5244</td><td>0.5365</td><td>18.13</td><td>0.5071</td><td>0.5521</td></tr>
+          <tr><th class="m" scope="row">4DGaussians</th><td>19.85</td><td>0.5321</td><td>0.5398</td><td>18.68</td><td>0.5129</td><td>0.5536</td></tr>
+          <tr class="rule-above"><th class="m" scope="row">4DGaussians + MPRNet</th><td>19.66</td><td>0.5258</td><td>0.5344</td><td>18.69</td><td>0.5120</td><td>0.5442</td></tr>
+          <tr><th class="m" scope="row">DyBluRF</th><td>17.42</td><td>0.2717</td><td>0.6939</td><td>16.54</td><td>0.2597</td><td>0.7022</td></tr>
+          <tr><th class="m" scope="row">BAD-4DGaussians</th><td>18.65</td><td>0.4592</td><td class="r3">0.4866</td><td>17.88</td><td>0.4498</td><td class="r3">0.4961</td></tr>
+          <tr class="rule-above"><th class="m" scope="row">4DGaussians (w/ EV)</th><td>20.35</td><td>0.5467</td><td>0.5199</td><td class="r3">19.07</td><td class="r3">0.5241</td><td>0.5322</td></tr>
+          <tr><th class="m" scope="row">BAD-4DGaussians (w/ EV)</th><td class="r3">20.98</td><td class="r3">0.5488</td><td class="r2">0.4358</td><td class="r2">19.40</td><td>0.5170</td><td class="r2">0.4556</td></tr>
+          <tr><th class="m" scope="row">EDyGS</th><td class="r2">21.31</td><td class="r1">0.5881</td><td>0.5058</td><td class="r3">19.07</td><td class="r2">0.5360</td><td>0.5227</td></tr>
+          <tr class="ours"><th class="m" scope="row">Ours</th><td class="r1">21.83</td><td class="r2">0.5755</td><td class="r1">0.4091</td><td class="r1">20.42</td><td class="r1">0.5503</td><td class="r1">0.4244</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <span><i class="k1"></i>best</span>
+      <span><i class="k2"></i>second</span>
+      <span><i class="k3"></i>third</span>
+      <span>Averaged over eight Dycheck scenes at extreme blur. SI-&ast; metrics allow up to 10% translation before scoring.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== 4 · CITE ====================== -->
+<section class="section" id="paper">
+  <div class="wrap">
+    <p class="section__eyebrow">Paper</p>
+    <h2 class="section__title">Cite this work</h2>
+
+    <div class="actions" style="margin-bottom: 0">
+      <a class="pill pill--primary" href="assets/pdf/event-guided-dynamic-reconstruction.pdf">Download the PDF</a>
+      <a class="pill pill--muted" href="#" data-arxiv>arXiv</a>
+      <a class="pill" href="https://figshare.com/s/35892b02f9641ea8e46c">Video results</a>
+    </div>
+
+    <div class="cite">
+      <button class="pill cite__copy" type="button" id="copy-bib">Copy</button>
+      <pre id="bibtex">@inproceedings{vaghela2026eventguided,
+  title     = {Event-Guided Dynamic Reconstruction under Extreme Motion Blur},
+  author    = {Vaghela, Arpitsinh and Verma, Aayush Atul and Chanda, Kaustav
+               and Huang, Chi-Yao and Lu, Duo and Chakravarthi, Bharatesh
+               and Yang, Yezhou},
+  booktitle = {NeurIPS 2026 Workshop on Physical World AI},
+  year      = {2026}
+}</pre>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script defer src="assets/js/site.js"></script>
+</body>
+</html>
